@@ -1,66 +1,39 @@
 import java.io.*;
-import java.util.Objects;
 
 public class Packer {
-    String inputFileName;
-    String outputFileName;
 
-    public Packer(String inputFileName) {
-        this.inputFileName = inputFileName;
-        this.outputFileName = inputFileName + ".rle";
-    }
-
-    public Packer(String inputFileName, String outputFileName) {
-        this.inputFileName = inputFileName;
-        this.outputFileName = Objects.requireNonNullElseGet(outputFileName, () -> inputFileName + ".rle");
-    }
-
-    public void unPack() throws IOException {
-        FileReader fr = new FileReader(inputFileName);
-        FileWriter fw = new FileWriter(outputFileName);
-
-        int c = fr.read();
-        int charToPrint = c;
-        StringBuilder number = new StringBuilder();
-        while (c != -1) {
-            c = fr.read();
-            if (Character.isDigit((char) c))
-                number.append((char) c);
-            else {
-                if (!number.toString().equals("")) {
-                    fw.write(Character.toString(charToPrint).repeat(Integer.parseInt(number.toString().toString())));
-                    number = new StringBuilder();
-                } else fw.write(charToPrint);
-                charToPrint = c;
-            }
-        }
-        fr.close();
-        fw.close();
-    }
-
-    public void pack() throws IOException {
-
-        FileReader fr = new FileReader(inputFileName);
-        FileWriter fw = new FileWriter(outputFileName);
-
-        int c = fr.read();
+    public void pack(final Reader reader, final Writer writer) throws IOException {
+        int c = reader.read();
         int k = 1;
-
+        int next;
         while (c != -1) {
-            int next = fr.read();
-            if (c == next)
+            next = reader.read();
+            if (c == next && k != 9)
                 k++;
-            else if (k == 1) {
-                fw.write(c);
+            else {
+                writer.write(Integer.toString(k));
+                writer.write(c);
                 k = 1;
-            } else {
-                fw.write(c);
-                fw.write(Integer.toString(k));
-                k = 1;
+                c = next;
             }
-            c = next;
         }
-        fr.close();
-        fw.close();
+        reader.close();
+        writer.close();
     }
+
+    public void unPack(final Reader reader, final Writer writer) throws IOException {
+        int c1 = reader.read();
+        int c2 = reader.read();
+        while (c1 != -1) {
+            int number = Integer.parseInt(Character.toString(c1));
+            String charToPrint = Character.toString(c2);
+            writer.write(charToPrint.repeat(number));
+            c1 = reader.read();
+            c2 = reader.read();
+        }
+        reader.close();
+        writer.close();
+    }
+
 }
+

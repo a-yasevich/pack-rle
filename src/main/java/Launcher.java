@@ -1,23 +1,25 @@
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Launcher {
     @Option(name = "-out")
     private String outputFileName;
-    @Option(name = "-z")
+    @Option(name = "-z", forbids = {"-u"})
     private String inputFileNameToPack;
-    @Option(name = "-u")
+    @Option(name = "-u", forbids = {"-z"})
     private String inputFileNameToUnpack;
-
 
     public static void main(String[] args) {
         new Launcher().launch(args);
     }
 
-    private void launch(String[] args){
+    private void launch(String[] args) {
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
@@ -26,14 +28,14 @@ public class Launcher {
             System.err.println("java -jar pack-rle.jar [-z|-u] InputName [-out OutputName]");
             parser.printUsage(System.err);
         }
-        System.out.println(outputFileName);
-        System.out.println(inputFileNameToPack);
-        System.out.println(inputFileNameToUnpack);
+
         try {
-            if(inputFileNameToPack != null)
-                new Packer(inputFileNameToPack, outputFileName).pack();
-            else if(inputFileNameToUnpack != null)
-                new Packer(inputFileNameToUnpack, outputFileName).unPack();
+            if (inputFileNameToPack != null)
+                new Packer().pack(new FileReader(inputFileNameToPack), new FileWriter(
+                        Objects.requireNonNullElse(outputFileName, inputFileNameToPack + ".rle")));
+            else if (inputFileNameToUnpack != null)
+                new Packer().unPack(new FileReader(inputFileNameToUnpack), new FileWriter(
+                        Objects.requireNonNullElse(outputFileName, inputFileNameToUnpack + ".rle")));
             else {
                 System.err.println("java -jar pack-rle.jar [-z|-u] InputName [-out OutputName]");
                 parser.printUsage(System.err);
